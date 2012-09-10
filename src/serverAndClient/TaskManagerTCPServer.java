@@ -64,6 +64,7 @@ public class TaskManagerTCPServer {
                 outStream.writeUTF(result);
                 cs.serialize(cal);
 			}
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

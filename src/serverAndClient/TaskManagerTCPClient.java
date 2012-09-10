@@ -26,8 +26,11 @@ public class TaskManagerTCPClient {
 			
 			InputStream is = socket.getInputStream();
 			ObjectInputStream inStream = new ObjectInputStream(is);
-			String ping = inStream.readUTF();
-			
+			try{
+            String ping = inStream.readUTF();
+            } catch (EOFException e) {
+                System.out.println("Got "+e);
+            }
 			dos.writeUTF("rao");
 			Task task = (Task)inStream.readObject();
 			
