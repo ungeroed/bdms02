@@ -9,8 +9,6 @@ import java.util.Arrays;
 import xml.*;
 
 public class TaskManagerTCPServer {
-	int serverPort = 7890;
-	ServerSocket listenSocket;
 	
 	public static void main(String[] args) {
 		TaskManagerTCPServer server = new TaskManagerTCPServer();
@@ -21,12 +19,19 @@ public class TaskManagerTCPServer {
 	}
 
 	public void serve(){
-		try {
+		int serverPort = 7890;
+		ServerSocket listenSocket = null;;
+		Socket clientSocket = null;
+		try {			
 			listenSocket = new ServerSocket(serverPort);
-			Socket clientSocket = listenSocket.accept();
+			listenSocket.setReuseAddress(true);
+			clientSocket = listenSocket.accept();
+			clientSocket.setReuseAddress(true);
 			InputStream is = clientSocket.getInputStream();
 			ObjectInputStream inStream = new ObjectInputStream(is);
 			String command = inStream.readUTF();
+			
+			System.out.println("Server here: " + command + "received");
 			
 			OutputStream os = clientSocket.getOutputStream();			
 			ObjectOutputStream outStream = new ObjectOutputStream(os);
@@ -55,13 +60,25 @@ public class TaskManagerTCPServer {
 				String result = delete(taskID);
 				outStream.writeUTF(result);
 			}
+			
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			try {
+				listenSocket.close();
+				clientSocket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 		}
+		
 	}
 	
 	private Task[] get(String userID){

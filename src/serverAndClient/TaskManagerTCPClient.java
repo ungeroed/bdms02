@@ -15,23 +15,30 @@ public class TaskManagerTCPClient {
 	public void demand()
 	{
 		try {
+			int serverPort = 7890;						
 			InetAddress serverAddress = InetAddress.getByName("localhost");
-			int serverPort = 7890;
-			String command = "get";
-			Socket socket = new Socket(serverAddress, serverPort);
-			OutputStream os = socket.getOutputStream();
+			Socket transmitterSocket = new Socket(serverAddress, serverPort);
+			transmitterSocket.setReuseAddress(true);
+						
+			OutputStream os = transmitterSocket.getOutputStream();
 			ObjectOutputStream dos = new ObjectOutputStream(os);
+						
+			InputStream is = transmitterSocket.getInputStream();
+			ObjectInputStream inStream = new ObjectInputStream(is);
+	
+			String command = "get";
 			dos.writeUTF(command);
 			dos.flush();
-			
-			InputStream is = socket.getInputStream();
-			ObjectInputStream inStream = new ObjectInputStream(is);
+			System.out.println("Client here: " + command + "transmitted");
+		
 			String ping = inStream.readUTF();
-			
-			dos.writeUTF("rao");
-			Task task = (Task)inStream.readObject();
-			
-			socket.close();
+			if (ping.equalsIgnoreCase("get")) {
+				System.out.println("Client here: ping received");			
+				dos.writeUTF("rao");
+				dos.flush();
+				Task task = (Task)inStream.readObject();
+			}
+			transmitterSocket.close();
 			
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
