@@ -4,6 +4,7 @@
 package xml;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import javax.xml.bind.annotation.*;
 /**
@@ -29,6 +30,6 @@ public class Task implements Serializable {
 	public String description;
 	
 //	@XmlElement
-	public String attendant;
+	public ArrayList<String> attendants;
 
 }

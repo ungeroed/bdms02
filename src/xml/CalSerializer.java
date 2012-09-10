@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-import org.eclipse.persistence.internal.libraries.antlr.runtime.SerializedGrammar;
+//import org.eclipse.persistence.internal.libraries.antlr.runtime.SerializedGrammar;
 
 
 /**
@@ -20,9 +20,9 @@ import org.eclipse.persistence.internal.libraries.antlr.runtime.SerializedGramma
  *
  */
 public class CalSerializer {
-	private final String SAVING_PATH = "C:\\Users\\Yndal\\Desktop\\cal-xml.xml";//"../OutPutXml/cal-xml.xml"; 
+	private final String SAVING_PATH = "cal-xml.xml"; 
 	
-	public Cal deserialize(String xml){
+	public Cal deserialize(){
 		Cal cal = null;
 
 		
@@ -95,7 +95,7 @@ public class CalSerializer {
 	}
 	
 
-    public static void main(String args[]){
+  /*  public static void main(String args[]){
     	
     	Cal cal = new Cal();
     	cal.tasks = new ArrayList<Task>();
@@ -130,7 +130,7 @@ public class CalSerializer {
     	System.out.println(calSer.serialize(calClone));
     	
     }
-
+*/
     private static void PrintTaskObject(Task task){
 
         try {
