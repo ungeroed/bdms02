@@ -9,13 +9,22 @@ import java.util.Arrays;
 import xml.*;
 
 public class TaskManagerTCPServer {
-	
+	int serverPort = 7890;
+	ServerSocket listenSocket;
+    Cal cal;
+    CalSerializer cs;
+    
 	public static void main(String[] args) {
+
 		TaskManagerTCPServer server = new TaskManagerTCPServer();
 	}
 
 	public TaskManagerTCPServer(){
-		serve();
+
+        cs = new CalSerializer();
+
+        cal = cs.deserialize();
+        serve();
 	}
 
 	public void serve(){
@@ -47,18 +56,21 @@ public class TaskManagerTCPServer {
 				Task task = (Task)inStream.readObject();
 				String result = post(task);
 				outStream.writeUTF(result);
+                cs.serialize(cal);
 			}
 			
 			if(command.equals("PUT")){
 				Task task = (Task)inStream.readObject();
 				String result = put(task);
 				outStream.writeUTF(result);
+                cs.serialize(cal);
 			}
 			
 			if(command.equals("DELETE")){
 				String taskID = inStream.readUTF();
 				String result = delete(taskID);
-				outStream.writeUTF(result);
+                outStream.writeUTF(result);
+                cs.serialize(cal);
 			}
 			
 			
@@ -80,12 +92,16 @@ public class TaskManagerTCPServer {
 		}
 		
 	}
-	
+
+    /**
+     * Method to get all the tasks belonging to the specified user id
+     * do this by iterating the tasks in the current cla object.
+     * Add all the task with the user in the attendants list
+     * @param userID to search for
+     * @return the list of tasks (might be size 0)
+     */
 	private Task[] get(String userID){
 		ArrayList<Task> returnTasks = new ArrayList<Task>();
-		CalSerializer cs = new CalSerializer();
-		
-		Cal cal = cs.deserialize();
 		
 		for(Task task : cal.tasks){
 			if(task.attendants.contains(userID))
@@ -95,25 +111,59 @@ public class TaskManagerTCPServer {
 		return returnTasks.toArray(new Task[0]);
 		
 	}
-	
+
+    /**
+     * Simple method to append a task to the list of current cal object
+     * @param task
+     * @return Succes message (confidence wins)
+     * @todo implement fault handling
+     */
 	private String post(Task task){
-		
-		// read and write xml
-		
+
+        cal.tasks.add(task);
 		return "Task inserted.";
 	}
-	
+
+    /**
+     * Method to update the current task list with the provided task
+     * Do this by iterating the list until the task with the right id is found
+     * Then simply switch the tasks
+     * @param task the new task to insert (it aso specifies the id to search for)
+     * @return response of how well we did
+     */
 	private String put(Task task){
-		
-		// read and write xml
-		
-		return "Task updated.";
+        String response = "";
+
+        for(int i=0; i < cal.tasks.size(); i++)
+            if(cal.tasks.get(i).id.equals(task.id)){
+                /* out with the old, in with the new */
+                cal.tasks.remove(i);
+                cal.tasks.add(task);
+                response = "Task updated!";
+            }
+
+        if(response.isEmpty()) response = "No task with that id found";
+
+        return "Task updated.";
 	}
-	
+
+    /**
+     * Function to remove the task with the specified id
+     * do this by iterate through the current list, if the specified id is found remove the task from list
+     * @param id
+     * @return Human readable response
+     */
 	private String delete(String id){
+		String response = "";
+        for(int i=0; i < cal.tasks.size(); i++)
+            if(cal.tasks.get(i).id.equals(id)){
+                response = "Task deleted!";
+                cal.tasks.remove(i);
+            }
 		
-		// read and write xml
-		
-		return "Task deleted.";
+		if(response.isEmpty()) response = "No task with that id found";
+
+
+        return response;
 	}
 }
