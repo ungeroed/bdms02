@@ -11,13 +11,18 @@ import xml.*;
 public class TaskManagerTCPServer {
 	int serverPort = 7890;
 	ServerSocket listenSocket;
+    Cal cal;
 	
 	public static void main(String[] args) {
 		TaskManagerTCPServer server = new TaskManagerTCPServer();
 	}
 
 	public TaskManagerTCPServer(){
-		serve();
+
+        CalSerializer cs = new CalSerializer();
+
+        cal = cs.deserialize();
+        serve();
 	}
 
 	public void serve(){
@@ -66,9 +71,6 @@ public class TaskManagerTCPServer {
 	
 	private Task[] get(String userID){
 		ArrayList<Task> returnTasks = new ArrayList<Task>();
-		CalSerializer cs = new CalSerializer();
-		
-		Cal cal = cs.deserialize();
 		
 		for(Task task : cal.tasks){
 			if(task.attendants.contains(userID))
@@ -94,9 +96,15 @@ public class TaskManagerTCPServer {
 	}
 	
 	private String delete(String id){
+		String response = "";
+        for(int i=0; i < cal.tasks.size(); i++)
+            if(cal.tasks.get(i).id.equals(id)){
+                response = "Task deleted!";
+                cal.tasks.remove(i);
+            }
 		
-		// read and write xml
-		
-		return "Task deleted.";
+		if(response.isEmpty()) response = "No task with that id found";
+
+        return response;
 	}
 }
