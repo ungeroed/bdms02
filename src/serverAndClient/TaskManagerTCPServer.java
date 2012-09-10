@@ -12,14 +12,15 @@ public class TaskManagerTCPServer {
 	int serverPort = 7890;
 	ServerSocket listenSocket;
     Cal cal;
-	
-	public static void main(String[] args) {
+    CalSerializer cs;
+
+    public static void main(String[] args) {
 		TaskManagerTCPServer server = new TaskManagerTCPServer();
 	}
 
 	public TaskManagerTCPServer(){
 
-        CalSerializer cs = new CalSerializer();
+        cs = new CalSerializer();
 
         cal = cs.deserialize();
         serve();
@@ -47,18 +48,21 @@ public class TaskManagerTCPServer {
 				Task task = (Task)inStream.readObject();
 				String result = post(task);
 				outStream.writeUTF(result);
+                cs.serialize(cal);
 			}
 			
 			if(command.equals("PUT")){
 				Task task = (Task)inStream.readObject();
 				String result = put(task);
 				outStream.writeUTF(result);
+                cs.serialize(cal);
 			}
 			
 			if(command.equals("DELETE")){
 				String taskID = inStream.readUTF();
 				String result = delete(taskID);
-				outStream.writeUTF(result);
+                outStream.writeUTF(result);
+                cs.serialize(cal);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -90,11 +94,17 @@ public class TaskManagerTCPServer {
 	
 	private String put(Task task){
 		
-		// read and write xml
+
 		
 		return "Task updated.";
 	}
-	
+
+    /**
+     * Function to remove the task with the specified id
+     * do this by iterate through the current list, if the specified id is found remove the task from list
+     * @param id
+     * @return Human readable response
+     */
 	private String delete(String id){
 		String response = "";
         for(int i=0; i < cal.tasks.size(); i++)
@@ -104,6 +114,7 @@ public class TaskManagerTCPServer {
             }
 		
 		if(response.isEmpty()) response = "No task with that id found";
+
 
         return response;
 	}
