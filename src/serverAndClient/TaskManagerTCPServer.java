@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import xml.*;
 
 public class TaskManagerTCPServer {
 	int serverPort = 7896;
