@@ -29,7 +29,8 @@ public class Task implements Serializable {
 //	@XmlElement
 	public String description;
 	
-//	@XmlElement
+	@XmlElementWrapper(name = "attendants")
+	@XmlElement(name = "user")
 	public ArrayList<String> attendants;
 
 }

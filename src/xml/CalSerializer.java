@@ -17,7 +17,7 @@ import javax.xml.bind.JAXBException;
  *
  */
 public class CalSerializer {
-	private final String SAVING_PATH = "cal-xml.xml"; 
+	private final String SAVING_PATH = "src\\cal-xml.xml"; 
 	
 	public Cal deserialize(){
 		Cal cal = null;
@@ -92,42 +92,45 @@ public class CalSerializer {
 	}
 	
 
-  /*  public static void main(String args[]){
-    	
-    	Cal cal = new Cal();
-    	cal.tasks = new ArrayList<Task>();
-    	cal.users = new ArrayList<User>();
-    	
-    	Task task = new Task();
-    	task.id = "id-somehting";
-    	task.name = "name-somehting";
-    	task.date = "date-somehting";
-    	task.status = "status-somehting";
-    	task.description = "description-somehting";
-    	task.attendant = "attendant-somehting";
-    	cal.tasks.add(task);
-    	
-    	User user = new User();
-    	user.name = "name of user";
-    	user.password = "Undercover Brother";
-    	cal.users.add(user);
-    	
-    	CalSerializer calSer = new CalSerializer();
-    	System.out.println(calSer.serialize(cal));
-    	
-    	System.out.println("Tasks in Cal: " + cal.tasks.size());
-    	System.out.println("Users in Cal: " + cal.users.size());
-    	
-    	
-    	
-    	Cal calClone = calSer.deserialize("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cal><tasks><task id=\"id-somehting\" name=\"name-somehting\" date=\"date-somehting\" status=\"status-somehting\"><description>description-somehting</description><attendant>attendant-somehting</attendant></task></tasks><users><user><name>name of user</name><password>Undercover Brother</password></user></users></cal>");
-    	
-    	if(calClone != null) System.out.println(calClone);
-    	
-    	System.out.println(calSer.serialize(calClone));
-    	
-    }
-*/
+//    public static void main(String args[]){
+//    	
+//    	Cal cal = new Cal();
+//    	cal.tasks = new ArrayList<Task>();
+//    	cal.users = new ArrayList<User>();
+//    	
+//    	Task task = new Task();
+//    	task.id = "id-somehting";
+//    	task.name = "name-somehting";
+//    	task.date = "date-somehting";
+//    	task.status = "status-somehting";
+//    	task.description = "description-somehting";
+//    	task.attendants = new ArrayList<String>();
+//    	task.attendants.add("Attendant1");
+//    	task.attendants.add("Attendant2");
+//    	task.attendants.add("Attendant3");
+//    	cal.tasks.add(task);
+//    	
+//    	User user = new User();
+//    	user.name = "name of user";
+//    	user.password = "Undercover Brother";
+//    	cal.users.add(user);
+//    	
+//    	CalSerializer calSer = new CalSerializer();
+//    	System.out.println(calSer.serialize(cal));
+//    	
+//    	System.out.println("Tasks in Cal: " + cal.tasks.size());
+//    	System.out.println("Users in Cal: " + cal.users.size());
+//    	
+//    	
+//    	
+//    	Cal calClone = calSer.deserialize("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cal><tasks><task id=\"id-somehting\" name=\"name-somehting\" date=\"date-somehting\" status=\"status-somehting\"><description>description-somehting</description><attendant>attendant-somehting</attendant></task></tasks><users><user><name>name of user</name><password>Undercover Brother</password></user></users></cal>");
+//    	
+//    	if(calClone != null) System.out.println(calClone);
+//    	
+//    	System.out.println(calSer.serialize(calClone));
+//    	
+//    }
+
     private static void PrintTaskObject(Task task){
 
         try {
