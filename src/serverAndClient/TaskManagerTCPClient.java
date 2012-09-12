@@ -8,25 +8,25 @@ import xml.Task;
 public class TaskManagerTCPClient {
 	int serverPortObject = 7890;
 	int serverPortText = 7880;
-    
+	InetAddress serverAddress;
+	
 	
 	public TaskManagerTCPClient(){
-		getTask();
+		int counter = 0;
+		while(true){
+			getTask("Attendant1");
+			if(counter++ > 20) break;
+		}
+		
 	}
 	
-	public void getTask()
+	public Task[] getTask(String userID)
 	{
+		Task[] receivedTasks = new Task[0];
 		try {
-			
-			//TODO Add a bufferStream
-			
-			InetAddress serverAddress = InetAddress.getByName("localhost");
-			Socket socketObject = new Socket(serverAddress, serverPortObject);
+			serverAddress = InetAddress.getByName("localhost");
 			Socket socketText = new Socket(serverAddress, serverPortText);
-//            socket.setReuseAddress(true);
-            
-			System.out.println("Before client streams");
-			
+
 			//**********
             //Incoming stream
             //**********
@@ -39,117 +39,68 @@ public class TaskManagerTCPClient {
             BufferedOutputStream bufOutData = new BufferedOutputStream(socketText.getOutputStream());
             DataOutputStream textOut = new DataOutputStream(bufOutData);
             
-            
-            
-            System.out.println("Client output streams");
-            
-            
             String send = "get";
 			
             textOut.writeUTF(send);
             textOut.flush();
             
             String response = textIn.readUTF();
-            
-            
             System.out.println("Message from Server: " + response);
             
-            String requireTask = "Attendant1";
-            textOut.writeUTF(requireTask);
+            textOut.writeUTF(userID);
             textOut.flush();
            
-            
-            
-            
-            
-            
-            
+            //Will now receive a object - get ready for this...
+            ServerSocket serverSocketObject = new ServerSocket(serverPortObject);
+            Socket socketObject = serverSocketObject.accept();
+        	
+        	
+        	System.out.println("inetAddress in get: " + socketText.getInetAddress() + " - " + serverPortObject);
+			
             //**********
             //Object streams
             //**********
             
+        	
+        	
             //Input for objects (non-text)
             BufferedInputStream bufInObject = new BufferedInputStream(socketObject.getInputStream());
             ObjectInputStream objectIn = new ObjectInputStream(bufInObject);
             
             
-            
             //Output for objects (non-text)
-            BufferedOutputStream bufOutObject = new BufferedOutputStream(socketObject.getOutputStream());
-            ObjectOutputStream objectOut = new ObjectOutputStream(bufOutObject);
+//            BufferedOutputStream bufOutObject = new BufferedOutputStream(socketObject.getOutputStream());
+//            ObjectOutputStream objectOut = new ObjectOutputStream(bufOutObject);
             
             //**********
            
-         //   System.out.println("After client streams");
+            receivedTasks = (Task[]) objectIn.readObject();
             
-	
-             
-            System.out.println("Task required - but not yet received.");
+            System.out.println("Object received!");
             
+            //Close everything
+            textIn.close();
+            textOut.close();
             
+            objectIn.close();
+//            objectOut.close();
             
-            Task[] receivedTasks = (Task[]) objectIn.readObject();
-            System.out.println("Received " + receivedTasks.length + " tasks: " + receivedTasks);
+            socketObject.close();
+            socketText.close();
             
-//            socket.close();
+            serverSocketObject.close();
             
             
 		} catch (IOException ioe){
 		
 			ioe.printStackTrace();
 			
-		}
-//		
-//			
-//			
-//			
-//			
-//			
-//			
-//			
-//			
-//			
-//			
-//			
-//			int serverPort = 7890;						
-//			InetAddress serverAddress = InetAddress.getByName("localhost");
-//			Socket transmitterSocket = new Socket(serverAddress, serverPort);
-//			transmitterSocket.setReuseAddress(true);
-//						
-//			OutputStream os = transmitterSocket.getOutputStream();
-//			ObjectOutputStream dos = new ObjectOutputStream(os);
-//						
-//			InputStream is = transmitterSocket.getInputStream();
-//			ObjectInputStream inStream = new ObjectInputStream(is);
-//	
-//			String command = "get";
-//			dos.writeUTF(command);
-//			dos.flush();
-//			System.out.println("Client here: " + command + "transmitted");
-//		
-//			String ping = inStream.readUTF();
-//			if (ping.equalsIgnoreCase("get")) {
-//				System.out.println("Client here: ping received");			
-//				dos.writeUTF("rao");
-//				dos.flush();
-//				Task task = (Task)inStream.readObject();
-//			}
-//			transmitterSocket.close();
-//			
-//		} catch (UnknownHostException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (ClassNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		catch (ClassNotFoundException e) {
+		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		return receivedTasks;
 	}
 	
 	
