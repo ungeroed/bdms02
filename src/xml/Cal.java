@@ -25,9 +25,7 @@ public class Cal implements Serializable {
 	@Override
 	public String toString(){
 		
-		return "bullu bullu - Lotte hvor er du henne? \n Tasks: " + tasks.size() + "\nUsers: " + users.size();
-		
-		
-		
+		return "Tasks: " + tasks.size() + "\nUsers: " + users.size();
+			
 	}
 }

@@ -32,13 +32,11 @@ public class TaskManagerTCPServer {
         cs = new CalSerializer();
         cal = cs.deserialize();
         serve();
-	}
-
-	
-	
+	}	
 	
 	public void serve() throws IOException{
 		ServerSocket serverSocketText = new ServerSocket(serverPortText);
+		serverSocketText.setReuseAddress(true);
 		
 	    System.out.println("Server started at:\nObjects: " + serverPortObject + "\nText: " + serverPortText);
 		while(true){
@@ -48,7 +46,6 @@ public class TaskManagerTCPServer {
 		    new HandleIncomingClient(socketText);
 		}
 	}
-		
 	
 	private class HandleIncomingClient extends Thread{
 		Socket socketText;
@@ -61,6 +58,7 @@ public class TaskManagerTCPServer {
 	    
 		private HandleIncomingClient(Socket sText)  throws IOException{
 			socketText = sText;
+			socketText.setReuseAddress(true);
 			inetAddress = sText.getInetAddress();
 			
 			//Input for data (text)
@@ -85,88 +83,66 @@ public class TaskManagerTCPServer {
 	
 	            //Knows which kind of request to handle (get, put, delete,....)
 	            if(message.equalsIgnoreCase("get")){
+	            	
 	            	String userID = textIn.readUTF();
 	            	Task[] tasks= get(userID);
 	
-					//Output for objects (non-text)
-					Socket serverSocketObj = new Socket(inetAddress, serverPortObject);
-					BufferedOutputStream bufOutObject = new BufferedOutputStream(serverSocketObj.getOutputStream());
-		            ObjectOutputStream objectOut = new ObjectOutputStream(bufOutObject);
+					//Output stream for objects (non-text)
+					Socket socket_get = new Socket(inetAddress, serverPortObject);
+		            ObjectOutputStream oos_get = new ObjectOutputStream(new BufferedOutputStream(socket_get.getOutputStream()));
 		            
-		            //Input for objects (non-text)
-	//	            BufferedInputStream bufInObject = new BufferedInputStream(socketObject.getInputStream());
-	//	            ObjectInputStream objectIn = new ObjectInputStream(bufInObject);
-	
-					objectOut.writeObject(tasks);
-				    objectOut.flush();
-				    objectOut.close();
+		            oos_get.writeObject(tasks);
+				    oos_get.flush();
+				    oos_get.close();
 				}
 				
 				if(message.equalsIgnoreCase("post")){
-		            //Output for objects (non-text)
-					ServerSocket serverSocketObject = new ServerSocket(serverPortObject);
-					Socket socketObj = serverSocketObject.accept();
-	//				BufferedOutputStream bufOutObject = new BufferedOutputStream(socketObj.getOutputStream());
-	//	            ObjectOutputStream objectOut = new ObjectOutputStream(bufOutObject);
 		            
-		            //Input for objects (non-text)
-		            BufferedInputStream bufInObject = new BufferedInputStream(socketObj.getInputStream());
-		            ObjectInputStream objectIn = new ObjectInputStream(bufInObject);
+					//Set up to receive objects
+					ServerSocket server_post = new ServerSocket(serverPortObject);
+					Socket socket_post = server_post.accept();
+		            ObjectInputStream ois_post = new ObjectInputStream(new BufferedInputStream(socket_post.getInputStream()));
 	
-					Task task = (Task) objectIn.readObject();
+					Task task = (Task) ois_post.readObject();
 					String result = post(task);
 					
 					textOut.writeUTF(result);
 					textOut.flush();
 					
-					objectIn.close();
-					
-	                cs.serialize(cal);
+					ois_post.close();
 				}
 				
 				if(message.equalsIgnoreCase("put")){
-		            //Output for objects (non-text)
-					ServerSocket serverSocketObject = new ServerSocket(serverPortObject);
-					Socket socketObj = serverSocketObject.accept();
-	//				BufferedOutputStream bufOutObject = new BufferedOutputStream(socketObj.getOutputStream());
-	//	            ObjectOutputStream objectOut = new ObjectOutputStream(bufOutObject);
-		            
-		            //Input for objects (non-text)
-		            BufferedInputStream bufInObject = new BufferedInputStream(socketObj.getInputStream());
-		            ObjectInputStream objectIn = new ObjectInputStream(bufInObject);
+					//Set up to receive objects
+					ServerSocket server_put = new ServerSocket(serverPortObject);
+					Socket socket_put = server_put.accept();
+		            ObjectInputStream ois_put = new ObjectInputStream(new BufferedInputStream(socket_put.getInputStream()));
 	
-					Task task = (Task) objectIn.readObject();
+					Task task = (Task) ois_put.readObject();
 					String result = put(task);
 					
 					textOut.writeUTF(result);
 					textOut.flush();
 	                
-					objectIn.close();
-					
-					cs.serialize(cal);
+					ois_put.close();
 				}
 				
 				if(message.equalsIgnoreCase("delete")){
 					String taskID = textIn.readUTF();
 					String result = delete(taskID);
 	                textOut.writeUTF(result);
-	                textOut.flush();
-	                cs.serialize(cal);
+	                textOut.flush();	                
 				}
 				
 				textOut.close();
 			    textIn.close();
-			} catch(IOException ioe){
-				
-				ioe.printStackTrace();
-				
+			} catch(IOException ioe){				
+				ioe.printStackTrace();				
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} 
-			
-		}
-		
+			} 			
+		}		
 	}
 	
     /**
@@ -190,12 +166,12 @@ public class TaskManagerTCPServer {
     /**
      * Simple method to append a task to the list of current cal object
      * @param task
-     * @return Succes message (confidence wins)
+     * @return Success message (confidence wins)
      * @todo implement fault handling
      */
 	private String post(Task task){
-
         cal.tasks.add(task);
+        cs.serialize(cal);
 		return "Task inserted.";
 	}
 
@@ -215,6 +191,7 @@ public class TaskManagerTCPServer {
                 cal.tasks.remove(i);
                 cal.tasks.add(task);
                 response = "Task updated!";
+                cs.serialize(cal);
             }
 
         if(response.isEmpty()) response = "No task with that id found";
@@ -234,11 +211,11 @@ public class TaskManagerTCPServer {
             if(cal.tasks.get(i).id.equals(id)){
                 response = "Task deleted!";
                 cal.tasks.remove(i);
+                cs.serialize(cal);
             }
 		
 		if(response.isEmpty()) response = "No task with that id found";
-
-
+		
         return response;
 	}
 }

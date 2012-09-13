@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.*;
  */
 @XmlRootElement(name = "task")
 public class Task implements Serializable {
-
+	
 	@XmlAttribute
 	public String id;
 	
