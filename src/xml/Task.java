@@ -13,7 +13,7 @@ import javax.xml.bind.annotation.*;
  */
 @XmlRootElement(name = "task")
 public class Task implements Serializable {
-
+	
 	@XmlAttribute
 	public String id;
 	
@@ -26,10 +26,18 @@ public class Task implements Serializable {
 	@XmlAttribute
 	public String status;
 	
-//	@XmlElement
-	public String description;
-	
-//	@XmlElement
+	@XmlElementWrapper(name = "attendants")
+	@XmlElement(name = "user")
 	public ArrayList<String> attendants;
+
+    public Task(){}
+
+    public Task(String id, String name, String date, String status){
+        this.attendants = new ArrayList<String>();
+        this.id = id;
+        this.name = name;
+        this.date = date;
+        this.status = status;
+    }
 
 }
