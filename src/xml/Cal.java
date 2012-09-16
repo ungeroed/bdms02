@@ -28,4 +28,9 @@ public class Cal implements Serializable {
 		return "Tasks: " + tasks.size() + "\nUsers: " + users.size();
 			
 	}
+
+    public Cal(){
+        tasks = new ArrayList<Task>();
+        users = new ArrayList<User>();
+    }
 }

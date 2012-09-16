@@ -2,229 +2,155 @@ package serverAndClient;
 
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
 
 import xml.Task;
 
 public class TaskManagerTCPClient {
-	int serverPortObject = 7890;
-	int serverPortText = 7880;
-	InetAddress serverAddress;	
-	
-	public TaskManagerTCPClient(){
-		
+
+	int serverPort = 7890;
+
+	InetAddress serverAddress;
+    Socket socket;
+
+    ObjectInputStream in;
+    ObjectOutputStream out;
+
+
+    public TaskManagerTCPClient(String host) throws IOException {
+        serverAddress = InetAddress.getByName(host);
 	}
+
+    public void open() throws IOException {
+        socket = new Socket(serverAddress, serverPort);
+        socket.setReuseAddress(true);
+
+        out = new ObjectOutputStream(socket.getOutputStream());
+        out.flush(); // ObjectOutputStream has a block constructor. This fixes it. #java-io-api-hacks
+
+        in = new ObjectInputStream(socket.getInputStream());
+    }
+
+    public void close() throws IOException {
+        socket.close();
+        out.close();
+        in.close();
+    }
+
+    public void reset() throws IOException {
+        close();
+        open();
+    }
+
 	
-	public Task[] getTasks(String userID)
-	{
-		Task[] receivedTasks = new Task[0];
-		try {
-			serverAddress = InetAddress.getByName("localhost");
-			Socket socketText = new Socket(serverAddress, serverPortText);
-			socketText.setReuseAddress(true);
-			
-			//**********
-            //Incoming stream
-            //**********
-            
-            //Input for data (text)
-            DataInputStream textIn = new DataInputStream(new BufferedInputStream(socketText.getInputStream()));
-            
-            //Output for data (text)
-            DataOutputStream textOut = new DataOutputStream(new BufferedOutputStream(socketText.getOutputStream()));
-            
-            String send = "get";
-			
-            textOut.writeUTF(send);
-            textOut.flush();
-            
-            String ping = textIn.readUTF();
-            //System.out.println("Message from Server: " + response);
-            
-            textOut.writeUTF(userID);
-            textOut.flush();
-           
-            //Will now receive a object - get ready for this...
-            ServerSocket serverSocketObject = new ServerSocket(serverPortObject);
-            Socket socketObject = serverSocketObject.accept();        	
-        	
-        	//System.out.println("inetAddress in get: " + socketText.getInetAddress() + " - " + serverPortObject);
-			
-            //**********
-            //Object streams
-            //**********
-                   	
-        	
-            //Input for objects (non-text)
-            ObjectInputStream objectIn = new ObjectInputStream(new BufferedInputStream(socketObject.getInputStream()));
-            
-            receivedTasks = (Task[]) objectIn.readObject();
-            
-            //System.out.println("Object received!");
-            
-            //Close everything
-            textIn.close();
-            textOut.close();            
-            objectIn.close();            
-            socketObject.close();
-            socketText.close();            
-            serverSocketObject.close();
-            
-		} catch (IOException ioe){
-		
-			ioe.printStackTrace();
-			
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+	public Task[] get(String userID) throws IOException, ClassNotFoundException {
+
+        out.writeObject("GET");
+
+        out.writeObject(userID);
+
+        out.flush();
+
+        String responseProtocol = in.readObject().toString();
+
+        Task[] receivedTasks = (Task[]) in.readObject();
+
 		return receivedTasks;
 	}	
 
-	private String post(Task task) {
-		String response = ""; 
-		try {
-			serverAddress = InetAddress.getByName("localhost");
-			Socket socketText = new Socket(serverAddress, serverPortText);
-			socketText.setReuseAddress(true);
-			
-			// Send text
-            DataOutputStream textOut = new DataOutputStream(new BufferedOutputStream(socketText.getOutputStream()));
-            String send = "post";
-            textOut.writeUTF(send);
-            textOut.flush();
-            
-            socketText.flush();
-            // Receive text
-            DataInputStream textIn = new DataInputStream(new BufferedInputStream(socketText.getInputStream()));
-            String ping = textIn.readUTF();
-            
-            //System.out.println("Message from Server: " + response);
-            
-            Socket socket = new Socket(serverAddress, serverPortObject);
-            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-            
-            oos.writeObject(task);
-		    oos.flush();
-		    oos.close();
-            
-            response = textIn.readUTF();
-            
-          //Close everything
-            textIn.close();
-            textOut.close();
-            socketText.close();            
+	private String post(Task task) throws IOException, ClassNotFoundException {
 
-			
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return response;		
+        out.writeObject("POST");
+
+        out.writeObject(task);
+
+        out.flush();
+
+        String responseProtocol = in.readObject().toString();
+
+        String response = in.readObject().toString();
+
+        return response;
+
 	}
 	
-	private String put(Task task) {
-		String response = ""; 
-		try {
-			serverAddress = InetAddress.getByName("localhost");
-			Socket socketText = new Socket(serverAddress, serverPortText);
-			socketText.setReuseAddress(true);
-			
-			// Send text
-            DataOutputStream textOut = new DataOutputStream(new BufferedOutputStream(socketText.getOutputStream()));
-            String send = "put";
-            textOut.writeUTF(send);
-            textOut.flush();
-            
-            // Receive text
-            DataInputStream textIn = new DataInputStream(new BufferedInputStream(socketText.getInputStream()));
-            String ping = textIn.readUTF();
-            
-            //System.out.println("Message from Server: " + response);
-            
-            Socket socket = new Socket(serverAddress, serverPortObject);
-            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-            
-            oos.writeObject(task);
-		    oos.flush();
-		    oos.close();
-            
-            response = textIn.readUTF();
-            
-          //Close everything
-            textIn.close();
-            textOut.close();            
-            socketText.close();            
+	private String put(Task task) throws IOException, ClassNotFoundException {
 
-			
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return response;
-		
+        out.writeObject("PUT");
+
+        out.writeObject(task);
+
+        out.flush();
+
+        String responseProtocol = in.readObject().toString();
+
+        String response = in.readObject().toString();
+
+        return response;
 	}
 	
-	private String delete(String taskID) {
-		String response = ""; 
-		try {
-			serverAddress = InetAddress.getByName("localhost");
-			Socket socketText = new Socket(serverAddress, serverPortText);
-			socketText.setReuseAddress(true);
-			
-			//**********
-            //Incoming stream
-            //**********
-            
-            //Input for data (text)
-            BufferedInputStream bufInData = new BufferedInputStream(socketText.getInputStream());
-            DataInputStream textIn = new DataInputStream(bufInData);
-            
-            //Output for data (text)
-            BufferedOutputStream bufOutData = new BufferedOutputStream(socketText.getOutputStream());
-            DataOutputStream textOut = new DataOutputStream(bufOutData);
-            
-            String send = "delete";
-			
-            textOut.writeUTF(send);
-            textOut.flush();
-            
-            String ping = textIn.readUTF();
-            System.out.println("Message from Server: " + response);
-            
-            textOut.writeUTF(taskID);
-            textOut.flush();
-            
-            response = textIn.readUTF();
-            
-          //Close everything
-            textIn.close();
-            textOut.close();            
-            socketText.close();            
+	private String delete(String taskID) throws IOException, ClassNotFoundException {
 
-			
-		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return response;	
+        out.writeObject("DELETE");
+
+        out.writeObject(taskID);
+
+        out.flush();
+
+        String responseProtocol = in.readObject().toString();
+
+        String response = in.readObject().toString();
+
+        return response;
 	}
 	
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
-		TaskManagerTCPClient client = new TaskManagerTCPClient();	
+
+	public static void main(String[] args)  {
+        try {
+            TaskManagerTCPClient client = new TaskManagerTCPClient("localhost");
+
+            client.open();
+
+            Task task = new Task("1", "Do MDS Mandatory Exercise 1", "17-9-2012", "done");
+
+            task.attendants.add("eeng");
+            task.attendants.add("lynd");
+            task.attendants.add("mrof");
+            task.attendants.add("cstp");
+
+            System.out.println("Response to post: "+client.post(task));
+
+            client.reset();
+
+            /*
+            System.out.println("Response to get: ");
+
+            Task[] tasks = client.get("Attendant3");
+
+            for(Task task : tasks){
+                xml.CalSerializer.PrintTaskObject(task);
+            }
+
+            client.reset();
+
+
+            System.out.println("Response to delete: "+client.delete("1"));
+
+            client.reset();
+
+            System.out.println("Response to put: "+client.put(new Task()));
+
+            client.close();
+            */
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+		//client.post(new Task());
 		/*
 		// test get
 		System.out.println("***********");
@@ -240,7 +166,7 @@ public class TaskManagerTCPClient {
 			System.out.println("" + task.description);
 		}		
 		System.out.println();		
-		*/
+		
 		// test post
 		System.out.println("***********");
 		System.out.println("Testing POST");
@@ -301,7 +227,8 @@ public class TaskManagerTCPClient {
 		System.out.println("Testing DELETE");
 		System.out.println("**************");
 		String response_delete = client.delete("2412");
-		System.out.println(response_delete);			
+		System.out.println(response_delete);
 		*/
+
 	}
 }

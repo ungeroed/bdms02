@@ -1,148 +1,137 @@
 package serverAndClient;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-
 import xml.Cal;
 import xml.CalSerializer;
 import xml.Task;
 
+import javax.xml.bind.JAXBException;
+
 public class TaskManagerTCPServer {
-	int serverPortObject = 7890;
-	int serverPortText = 7880;
-	
+	int serverPort = 7890;
+
     Cal cal;
     CalSerializer cs;
-    
-	public static void main(String[] args) throws IOException{
 
-		TaskManagerTCPServer server = new TaskManagerTCPServer();
-	}
-
-	public TaskManagerTCPServer() throws IOException{
+	public TaskManagerTCPServer() {
         cs = new CalSerializer();
-        cal = cs.deserialize();
-        serve();
-	}	
+        try {
+            cal = cs.deserialize();
+        } catch (JAXBException e) {
+            System.out.println("Couldn't start server. JAXBException: ");
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+
+            System.out.println("Couldn't start server. FileNotFoundException: ");
+            e.printStackTrace();
+        }
+        try {
+            serve();
+        } catch (IOException e) {
+            System.out.println("Couldn't start server. IOException:");
+            e.printStackTrace();
+        }
+    }
 	
 	public void serve() throws IOException{
-		ServerSocket serverSocketText = new ServerSocket(serverPortText);
-		serverSocketText.setReuseAddress(true);
-		
-	    System.out.println("Server started at:\nObjects: " + serverPortObject + "\nText: " + serverPortText);
-		while(true){
-			//Every new command will be of the type String
-			Socket socketText = serverSocketText.accept();
-		    System.out.println("A new client is connected...");
-		    new HandleIncomingClient(socketText);
+
+        ServerSocket serverSocket = new ServerSocket(serverPort);
+		serverSocket.setReuseAddress(true);
+
+        while(true){
+			Socket socket = serverSocket.accept();
+		    new HandleIncomingClient(socket);
 		}
 	}
 	
 	private class HandleIncomingClient extends Thread{
-		Socket socketText;
+		Socket socket;
 
 		//The address of the client
 		InetAddress inetAddress;
 		
-	    DataInputStream textIn;
-	    DataOutputStream textOut;
+	    ObjectInputStream in;
+	    ObjectOutputStream out;
 	    
-		private HandleIncomingClient(Socket sText)  throws IOException{
-			socketText = sText;
-			socketText.setReuseAddress(true);
-			inetAddress = sText.getInetAddress();
-			
-			//Input for data (text)
-            BufferedInputStream bufInData = new BufferedInputStream(socketText.getInputStream());
-            textIn = new DataInputStream(bufInData);
-            
-            //Output for data (text)
-            BufferedOutputStream bufOutData = new BufferedOutputStream(socketText.getOutputStream());
-            textOut = new DataOutputStream(bufOutData);
-            
-            //It's now ready to receive and send text
+		private HandleIncomingClient(Socket sock)  throws IOException{
+
+            socket = sock;
+			socket.setReuseAddress(true);
+			inetAddress = sock.getInetAddress();
+
+            out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
+
+
+            in = new ObjectInputStream(socket.getInputStream());
+
+
             this.start();
 		}
 		
 		public void run() {
 			try{
-				String message =  textIn.readUTF(); // blocking call
-	            System.out.println("Message - from Client: " + message);
-	
-	            textOut.writeUTF(message);
-	            textOut.flush();
-	
-	            //Knows which kind of request to handle (get, put, delete,....)
-	            if(message.equalsIgnoreCase("get")){
-	            	
-	            	String userID = textIn.readUTF();
-	            	Task[] tasks= get(userID);
-	
-					//Output stream for objects (non-text)
-					Socket socket_get = new Socket(inetAddress, serverPortObject);
-		            ObjectOutputStream oos_get = new ObjectOutputStream(new BufferedOutputStream(socket_get.getOutputStream()));
-		            
-		            oos_get.writeObject(tasks);
-				    oos_get.flush();
-				    oos_get.close();
-				}
-				
-				if(message.equalsIgnoreCase("post")){
-		            
-					//Set up to receive objects
-					ServerSocket server_post = new ServerSocket(serverPortObject);
-					Socket socket_post = server_post.accept();
-		            ObjectInputStream ois_post = new ObjectInputStream(new BufferedInputStream(socket_post.getInputStream()));
-	
-					Task task = (Task) ois_post.readObject();
-					String result = post(task);
-					
-					textOut.writeUTF(result);
-					textOut.flush();
-					
-					ois_post.close();
-				}
-				
-				if(message.equalsIgnoreCase("put")){
-					//Set up to receive objects
-					ServerSocket server_put = new ServerSocket(serverPortObject);
-					Socket socket_put = server_put.accept();
-		            ObjectInputStream ois_put = new ObjectInputStream(new BufferedInputStream(socket_put.getInputStream()));
-	
-					Task task = (Task) ois_put.readObject();
-					String result = put(task);
-					
-					textOut.writeUTF(result);
-					textOut.flush();
-	                
-					ois_put.close();
-				}
-				
-				if(message.equalsIgnoreCase("delete")){
-					String taskID = textIn.readUTF();
-					String result = delete(taskID);
-	                textOut.writeUTF(result);
-	                textOut.flush();	                
-				}
-				
-				textOut.close();
-			    textIn.close();
+
+                // Protocol is specified first
+                String protocol = in.readObject().toString(); // blocking call
+
+                // Data in bytestream
+                Object data = in.readObject();
+
+                out.writeObject(protocol);
+                // handle protocls differently
+                    if(protocol.equalsIgnoreCase("GET")){
+
+                        // In this case the data is a userid
+                        // @todo check this data
+
+                        Task[] tasks = get(data.toString());
+
+                        out.writeObject(tasks);
+                        out.flush();
+                    }
+
+                    if(protocol.equalsIgnoreCase("POST")){
+                        // In this case data is a task
+
+                        Task task = (Task) data;
+                        String result = post(task);
+
+                        out.writeObject(result);
+                        out.flush();
+                    }
+
+                    if(protocol.equalsIgnoreCase("PUT")){
+
+                        Task task = (Task) data;
+
+                        String result = put(task);
+
+                        out.writeObject(result);
+                        out.flush();
+                    }
+
+                    if(protocol.equalsIgnoreCase("DELETE")){
+
+                        // In this case the data is an id
+                        String result = delete(data.toString());
+
+                        out.writeObject(result);
+                        out.flush();
+                    }
+
+                    out.close();
+                    in.close();
 			} catch(IOException ioe){				
 				ioe.printStackTrace();				
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} 			
-		}		
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
 	}
 	
     /**
@@ -154,8 +143,10 @@ public class TaskManagerTCPServer {
      */
 	private Task[] get(String userID){
 		ArrayList<Task> returnTasks = new ArrayList<Task>();
-		for(Task task : cal.tasks){
-			if(task.attendants.contains(userID))
+
+        for(Task task : cal.tasks){
+            CalSerializer.PrintTaskObject(task);
+			if(task.attendants != null && task.attendants.contains(userID))
 				returnTasks.add(task);
 		}
 		
@@ -170,9 +161,18 @@ public class TaskManagerTCPServer {
      * @todo implement fault handling
      */
 	private String post(Task task){
+        System.out.println("Posting "+task);
+        System.out.println(cal);
+        System.out.println(cal.tasks);
         cal.tasks.add(task);
-        cs.serialize(cal);
-		return "Task inserted.";
+        try {
+            cs.serialize(cal);
+        } catch (JAXBException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        return "Task inserted.";
 	}
 
     /**
@@ -186,12 +186,19 @@ public class TaskManagerTCPServer {
         String response = "";
 
         for(int i=0; i < cal.tasks.size(); i++)
-            if(cal.tasks.get(i).id.equals(task.id)){
+            if(cal.tasks.get(i).id == null) response = "No task by that id";
+            else if(cal.tasks.get(i).id.equals(task.id)){
                 /* out with the old, in with the new */
                 cal.tasks.remove(i);
                 cal.tasks.add(task);
                 response = "Task updated!";
-                cs.serialize(cal);
+                try {
+                    cs.serialize(cal);
+                } catch (JAXBException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                } catch (IOException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
             }
 
         if(response.isEmpty()) response = "No task with that id found";
@@ -208,14 +215,26 @@ public class TaskManagerTCPServer {
 	private String delete(String id){
 		String response = "";
         for(int i=0; i < cal.tasks.size(); i++)
-            if(cal.tasks.get(i).id.equals(id)){
+            if(cal.tasks.get(i).id == null) response = "No task by that id";
+            else if(cal.tasks.get(i).id.equals(id)){
                 response = "Task deleted!";
                 cal.tasks.remove(i);
-                cs.serialize(cal);
+                try {
+                    cs.serialize(cal);
+                } catch (JAXBException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                } catch (IOException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
             }
 		
 		if(response.isEmpty()) response = "No task with that id found";
 		
         return response;
 	}
+
+
+    public static void main(String[] args) throws IOException{
+        TaskManagerTCPServer server = new TaskManagerTCPServer();
+    }
 }

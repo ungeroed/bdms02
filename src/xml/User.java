@@ -19,7 +19,12 @@ public class User implements Serializable {
 	
 	@XmlElement
 	public String password;
-	
-	
+
+    public User(){}
+
+	public User(String name, String password){
+        this.name = name;
+        this.password = password;
+    }
 
 }
