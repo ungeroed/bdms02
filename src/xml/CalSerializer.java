@@ -125,8 +125,6 @@ public class CalSerializer {
     public static void PrintUserObject(User user){
 
         try {
-
-
             StringWriter writer = new StringWriter();
 
             // create a context object for Student Class
