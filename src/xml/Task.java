@@ -26,9 +26,6 @@ public class Task implements Serializable {
 	@XmlAttribute
 	public String status;
 	
-	@XmlAttribute
-	public String description;
-	
 	@XmlElementWrapper(name = "attendants")
 	@XmlElement(name = "user")
 	public ArrayList<String> attendants;
