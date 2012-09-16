@@ -95,6 +95,7 @@ public class TaskManagerTCPClient {
             textOut.writeUTF(send);
             textOut.flush();
             
+            socketText.flush();
             // Receive text
             DataInputStream textIn = new DataInputStream(new BufferedInputStream(socketText.getInputStream()));
             String ping = textIn.readUTF();
@@ -224,7 +225,7 @@ public class TaskManagerTCPClient {
 	 */
 	public static void main(String[] args) {
 		TaskManagerTCPClient client = new TaskManagerTCPClient();	
-		
+		/*
 		// test get
 		System.out.println("***********");
 		System.out.println("Testing GET");
@@ -239,7 +240,7 @@ public class TaskManagerTCPClient {
 			System.out.println("" + task.description);
 		}		
 		System.out.println();		
-		
+		*/
 		// test post
 		System.out.println("***********");
 		System.out.println("Testing POST");
@@ -254,7 +255,7 @@ public class TaskManagerTCPClient {
     	task1.attendants.add("hilde");		
 		String response_post1 = client.post(task1);
 		System.out.println(response_post1);
-		
+		/*
 		Task task2 = new Task();
     	task2.id = "ex-01";
     	task2.name = "exercise 01";
@@ -301,5 +302,6 @@ public class TaskManagerTCPClient {
 		System.out.println("**************");
 		String response_delete = client.delete("2412");
 		System.out.println(response_delete);			
+		*/
 	}
 }
