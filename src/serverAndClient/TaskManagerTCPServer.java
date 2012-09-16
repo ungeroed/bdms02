@@ -25,7 +25,6 @@ public class TaskManagerTCPServer {
             System.out.println("Couldn't start server. JAXBException: ");
             e.printStackTrace();
         } catch (FileNotFoundException e) {
-
             System.out.println("Couldn't start server. FileNotFoundException: ");
             e.printStackTrace();
         }
@@ -66,9 +65,7 @@ public class TaskManagerTCPServer {
             out = new ObjectOutputStream(socket.getOutputStream());
             out.flush();
 
-
             in = new ObjectInputStream(socket.getInputStream());
-
 
             this.start();
 		}
@@ -83,7 +80,7 @@ public class TaskManagerTCPServer {
                 Object data = in.readObject();
 
                 out.writeObject(protocol);
-                // handle protocls differently
+                // handle protocols differently
                     if(protocol.equalsIgnoreCase("GET")){
 
                         // In this case the data is a userid
@@ -161,9 +158,9 @@ public class TaskManagerTCPServer {
      * @todo implement fault handling
      */
 	private String post(Task task){
-        System.out.println("Posting "+task);
-        System.out.println(cal);
-        System.out.println(cal.tasks);
+        //System.out.println("Posting "+task);
+        //System.out.println(cal);
+        //System.out.println(cal.tasks);
         cal.tasks.add(task);
         try {
             cs.serialize(cal);
