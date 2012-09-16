@@ -77,10 +77,15 @@ public class TaskManagerTCPServer {
 			try{
 
                 // Protocol is specified first
-                String protocol = in.readObject().toString(); // blocking call
+                Object obj1 = in.readObject();
+                System.out.println("Object 1: "+obj1);
 
+                String protocol = obj1.toString(); // blocking call
+
+                Object obj2 = in.readObject();
+                System.out.println("Object 2: "+obj2);
                 // Data in bytestream
-                Object data = in.readObject();
+                Object data = obj2;
 
                 out.writeObject(protocol);
                 // handle protocls differently
@@ -126,6 +131,8 @@ public class TaskManagerTCPServer {
 
                     out.close();
                     in.close();
+            } catch(EOFException e) {
+                System.out.println("Client disconnected");
 			} catch(IOException ioe){				
 				ioe.printStackTrace();				
             } catch (ClassNotFoundException e) {
