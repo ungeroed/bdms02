@@ -197,7 +197,6 @@ public class TaskManagerTCPServer {
      * @param task
      * @return Success message (confidence wins)
      */
-	//TODO implement fault handling
 	private String post(Task task){
         System.out.println("Posting "+task);
         System.out.println(cal);
