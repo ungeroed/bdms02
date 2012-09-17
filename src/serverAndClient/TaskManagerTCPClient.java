@@ -51,7 +51,7 @@ public class TaskManagerTCPClient {
     }
 
     /**
-     * Closes all sockets and streams used in propper way
+     * Closes all sockets and streams used in proper way
      * @throws IOException If unable to close the streams or sockets
      */
     public void close() throws IOException {
@@ -84,7 +84,6 @@ public class TaskManagerTCPClient {
 
         out.flush();
 
-        //TODO Move this line up between the two .writeObject()s?
         
         //May be used to see if the server gets/reads the correct request 
         @SuppressWarnings("unused")
@@ -118,6 +117,14 @@ public class TaskManagerTCPClient {
         return response;
 	}
 	
+	/**
+	 * Updates a task at the server
+	 * 
+	 * @param task The task to update
+	 * @return String telling if the tasks was updated
+	 * @throws IOException When unable to establish a proper connection to the server
+	 * @throws ClassNotFoundException When unable to read the response string from server
+	 */
 	private String put(Task task) throws IOException, ClassNotFoundException {
 
         out.writeObject("PUT");
@@ -126,13 +133,21 @@ public class TaskManagerTCPClient {
 
         out.flush();
 
-        String responseProtocol = in.readObject().toString();
+        @SuppressWarnings("unused")
+		String responseProtocol = in.readObject().toString();
 
         String response = in.readObject().toString();
 
         return response;
 	}
 	
+	/**
+	 * Deletes a task at the server
+	 * @param taskID If of the task to be deleted
+	 * @return A string telling if the task was deleted
+	 * @throws IOException If unable to establish a proper connection to the server
+	 * @throws ClassNotFoundException When unable to read the response from server
+	 */
 	private String delete(String taskID) throws IOException, ClassNotFoundException {
 
         out.writeObject("DELETE");
@@ -141,15 +156,18 @@ public class TaskManagerTCPClient {
 
         out.flush();
 
-        String responseProtocol = in.readObject().toString();
+        @SuppressWarnings("unused")
+		String responseProtocol = in.readObject().toString();
 
         String response = in.readObject().toString();
 
         return response;
 	}
 	
+
 	/**
-	 * @param args
+	 * Main method
+	 * @param args Arguments from the user
 	 */
 	public static void main(String[] args)  {
         try {
@@ -206,6 +224,5 @@ public class TaskManagerTCPClient {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-
 	}
 }

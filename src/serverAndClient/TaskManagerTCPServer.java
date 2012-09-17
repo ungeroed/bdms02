@@ -196,9 +196,8 @@ public class TaskManagerTCPServer {
      * Simple method to append a task to the list of current cal object
      * @param task
      * @return Success message (confidence wins)
-     * @todo implement fault handling
      */
-	//TODO Look above
+	//TODO implement fault handling
 	private String post(Task task){
         System.out.println("Posting "+task);
         System.out.println(cal);

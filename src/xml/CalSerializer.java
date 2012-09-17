@@ -4,6 +4,7 @@
 package xml;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.ListIterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,7 +65,7 @@ public class CalSerializer {
 	}
 	
 
-//    public static void main(String args[]){
+//    public static void main(String args[]) throws IOException, FileNotFoundException, JAXBException{
 //    	
 //    	Cal cal = new Cal();
 //    	cal.tasks = new ArrayList<Task>();
@@ -75,7 +76,6 @@ public class CalSerializer {
 //    	task.name = "name-somehting";
 //    	task.date = "date-somehting";
 //    	task.status = "status-somehting";
-//    	task.description = "description-somehting";
 //    	task.attendants = new ArrayList<String>();
 //    	task.attendants.add("Attendant1");
 //    	task.attendants.add("Attendant2");
@@ -95,7 +95,7 @@ public class CalSerializer {
 //    	
 //    	
 //    	
-//    	Cal calClone = calSer.deserialize("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><cal><tasks><task id=\"id-somehting\" name=\"name-somehting\" date=\"date-somehting\" status=\"status-somehting\"><description>description-somehting</description><attendant>attendant-somehting</attendant></task></tasks><users><user><name>name of user</name><password>Undercover Brother</password></user></users></cal>");
+//    	Cal calClone = calSer.deserialize();
 //    	
 //    	if(calClone != null) System.out.println(calClone);
 //    	
