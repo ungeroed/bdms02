@@ -11,6 +11,15 @@ import xml.Task;
 
 import javax.xml.bind.JAXBException;
 
+/**
+ * A server to handle requests from several clients regarding the Taskmanager-assignment
+ * 
+ * 17/09-2012
+ * 
+ * @author the MacGyvers
+ * @version 1.0 beta
+ *
+ */
 public class TaskManagerTCPServer {
 	//The predefined port to accept incoming requests
 	int serverPort = 7890;
@@ -82,9 +91,8 @@ public class TaskManagerTCPServer {
 
             socket = sock;
 			socket.setReuseAddress(true);
-			
 			out = new ObjectOutputStream(socket.getOutputStream());
-            out.flush();
+			out.flush();
 
 
             in = new ObjectInputStream(socket.getInputStream());

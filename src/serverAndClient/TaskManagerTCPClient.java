@@ -5,21 +5,41 @@ import java.net.*;
 
 import xml.Task;
 
+/**
+ * The client to ask for requests according to the the assignment: Taskmanager
+ * 
+ * 17/09-2012
+ * 
+ * @author The MacGyvers
+ * @version 1.0 beta
+ */
 public class TaskManagerTCPClient {
-
+	//A predefined port to use to the requests
 	int serverPort = 7890;
 
+	//The location of the server
 	InetAddress serverAddress;
     Socket socket;
 
+    //The streams
     ObjectInputStream in;
     ObjectOutputStream out;
 
 
+    /**
+     * The contructor
+     * Sets the address of the server
+     * @param host The serveraddress (ip-address or "localhost")
+     * @throws IOException
+     */
     public TaskManagerTCPClient(String host) throws IOException {
         serverAddress = InetAddress.getByName(host);
 	}
 
+    /**
+     * Creates the socket and streams to use
+     * @throws IOException If not possible to get the input/output-streams from the socket
+     */
     public void open() throws IOException {
         socket = new Socket(serverAddress, serverPort);
         socket.setReuseAddress(true);
@@ -30,19 +50,33 @@ public class TaskManagerTCPClient {
         in = new ObjectInputStream(socket.getInputStream());
     }
 
+    /**
+     * Closes all sockets and streams used in propper way
+     * @throws IOException If unable to close the streams or sockets
+     */
     public void close() throws IOException {
         socket.close();
         out.close();
         in.close();
     }
 
+    /**
+     * Closes and opens all the sockets and streams
+     * @throws IOException If unable to close and reopen 
+     */
     public void reset() throws IOException {
         close();
         open();
     }
 
-	
-	public Task[] get(String userID) throws IOException, ClassNotFoundException {
+	/**
+	 * Collects the tasks from the server, that the user participates in
+	 * @param userID Id of the user
+	 * @return The tasks the user is participating in
+	 * @throws IOException If unable to get correct response from server
+	 * @throws ClassNotFoundException When unable to get the tasks from the server
+	 */
+	private Task[] get(String userID) throws IOException, ClassNotFoundException {
 
         out.writeObject("GET");
 
@@ -50,13 +84,24 @@ public class TaskManagerTCPClient {
 
         out.flush();
 
-        String responseProtocol = in.readObject().toString();
+        //TODO Move this line up between the two .writeObject()s?
+        
+        //May be used to see if the server gets/reads the correct request 
+        @SuppressWarnings("unused")
+		String responseProtocol = in.readObject().toString();
 
         Task[] receivedTasks = (Task[]) in.readObject();
 
 		return receivedTasks;
 	}	
 
+	/**
+	 * Adds a new task to the task manager at the server
+	 * @param task The task to add
+	 * @return String telling if the post actually is posted
+	 * @throws IOException If a proper connection to the server is not established 
+	 * @throws ClassNotFoundException
+	 */
 	private String post(Task task) throws IOException, ClassNotFoundException {
 
         out.writeObject("POST");
@@ -65,7 +110,8 @@ public class TaskManagerTCPClient {
 
         out.flush();
 
-        String responseProtocol = in.readObject().toString();
+        @SuppressWarnings("unused")
+		String responseProtocol = in.readObject().toString();
 
         String response = in.readObject().toString();
 
