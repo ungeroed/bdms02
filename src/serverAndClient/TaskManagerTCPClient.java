@@ -79,15 +79,14 @@ public class TaskManagerTCPClient {
 	private Task[] get(String userID) throws IOException, ClassNotFoundException {
 
         out.writeObject("GET");
-
-        out.writeObject(userID);
-
         out.flush();
-
         
         //May be used to see if the server gets/reads the correct request 
         @SuppressWarnings("unused")
 		String responseProtocol = in.readObject().toString();
+        
+        out.writeObject(userID);
+        out.flush();
 
         Task[] receivedTasks = (Task[]) in.readObject();
 
@@ -104,13 +103,13 @@ public class TaskManagerTCPClient {
 	private String post(Task task) throws IOException, ClassNotFoundException {
 
         out.writeObject("POST");
-
-        out.writeObject(task);
-
         out.flush();
-
+        
         @SuppressWarnings("unused")
 		String responseProtocol = in.readObject().toString();
+
+        out.writeObject(task);
+        out.flush();
 
         String response = in.readObject().toString();
 
@@ -128,13 +127,13 @@ public class TaskManagerTCPClient {
 	private String put(Task task) throws IOException, ClassNotFoundException {
 
         out.writeObject("PUT");
-
-        out.writeObject(task);
-
         out.flush();
-
+        
         @SuppressWarnings("unused")
 		String responseProtocol = in.readObject().toString();
+
+        out.writeObject(task);
+        out.flush();
 
         String response = in.readObject().toString();
 
@@ -151,14 +150,14 @@ public class TaskManagerTCPClient {
 	private String delete(String taskID) throws IOException, ClassNotFoundException {
 
         out.writeObject("DELETE");
-
-        out.writeObject(taskID);
-
         out.flush();
-
+        
         @SuppressWarnings("unused")
 		String responseProtocol = in.readObject().toString();
 
+        out.writeObject(taskID);
+        out.flush();
+        
         String response = in.readObject().toString();
 
         return response;

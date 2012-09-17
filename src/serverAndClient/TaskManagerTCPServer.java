@@ -112,56 +112,56 @@ public class TaskManagerTCPServer {
                 System.out.println("Object 1: "+obj1);
 
                 String protocol = obj1.toString(); // blocking call
-
+                out.writeObject(protocol);
+                out.flush();
+                
                 Object obj2 = in.readObject();
                 System.out.println("Object 2: "+obj2);
                 // Data in bytestream
                 Object data = obj2;
 
-                out.writeObject(protocol);
                 // handle protocls differently
-                    if(protocol.equalsIgnoreCase("GET")){
+                if(protocol.equalsIgnoreCase("GET")){
+            	    // In this case the data is a userid
+                    // @todo check this data
 
-                        // In this case the data is a userid
-                        // @todo check this data
+                    Task[] tasks = get(data.toString());
 
-                        Task[] tasks = get(data.toString());
+                    out.writeObject(tasks);
+                    out.flush();
+                }
 
-                        out.writeObject(tasks);
-                        out.flush();
-                    }
+                if(protocol.equalsIgnoreCase("POST")){
+                    // In this case data is a task
 
-                    if(protocol.equalsIgnoreCase("POST")){
-                        // In this case data is a task
+                    Task task = (Task) data;
+                    String result = post(task);
 
-                        Task task = (Task) data;
-                        String result = post(task);
+                    out.writeObject(result);
+                    out.flush();
+                }
 
-                        out.writeObject(result);
-                        out.flush();
-                    }
+                if(protocol.equalsIgnoreCase("PUT")){
 
-                    if(protocol.equalsIgnoreCase("PUT")){
+                    Task task = (Task) data;
 
-                        Task task = (Task) data;
+                    String result = put(task);
 
-                        String result = put(task);
+                    out.writeObject(result);
+                    out.flush();
+                }
 
-                        out.writeObject(result);
-                        out.flush();
-                    }
+                if(protocol.equalsIgnoreCase("DELETE")){
 
-                    if(protocol.equalsIgnoreCase("DELETE")){
+                    // In this case the data is an id
+                    String result = delete(data.toString());
 
-                        // In this case the data is an id
-                        String result = delete(data.toString());
+                    out.writeObject(result);
+                    out.flush();
+                }
 
-                        out.writeObject(result);
-                        out.flush();
-                    }
-
-                    out.close();
-                    in.close();
+                out.close();
+                in.close();
             } catch(EOFException e) {
                 System.out.println("Client disconnected");
 			} catch(IOException ioe){				
