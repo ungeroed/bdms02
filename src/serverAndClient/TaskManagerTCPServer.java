@@ -12,11 +12,16 @@ import xml.Task;
 import javax.xml.bind.JAXBException;
 
 public class TaskManagerTCPServer {
+	//The predefined port to accept incoming requests
 	int serverPort = 7890;
 
     Cal cal;
     CalSerializer cs;
 
+    /**
+     * The constructor
+     * Will start be deserialize the local XML-file
+     */
 	public TaskManagerTCPServer() {
         cs = new CalSerializer();
         try {
@@ -37,33 +42,48 @@ public class TaskManagerTCPServer {
         }
     }
 	
+	/**
+	 * Listens for incoming requests and handles these in each separate thread
+	 * by sending forth the socket to a private class
+	 * @throws IOException In case the server crashes
+	 */
 	public void serve() throws IOException{
 
         ServerSocket serverSocket = new ServerSocket(serverPort);
 		serverSocket.setReuseAddress(true);
 
+		System.out.println("Server is running...");
         while(true){
 			Socket socket = serverSocket.accept();
 		    new HandleIncomingClient(socket);
 		}
 	}
 	
+	/**
+	 * Will handle a single request, which socket i defined in the constructor
+	 * @author The MacGyvers
+	 *
+	 */
 	private class HandleIncomingClient extends Thread{
 		Socket socket;
 
-		//The address of the client
-		InetAddress inetAddress;
-		
-	    ObjectInputStream in;
+		//The streams 
+		ObjectInputStream in;
 	    ObjectOutputStream out;
 	    
+	    /**
+	     * The constructor
+	     * Sets the streams to be used and calls the method run() hereafter 
+	     * 
+	     * @param sock The socket from where the request to be handled is
+	     * @throws IOException If anything goes wrong
+	     */
 		private HandleIncomingClient(Socket sock)  throws IOException{
 
             socket = sock;
 			socket.setReuseAddress(true);
-			inetAddress = sock.getInetAddress();
-
-            out = new ObjectOutputStream(socket.getOutputStream());
+			
+			out = new ObjectOutputStream(socket.getOutputStream());
             out.flush();
 
 
@@ -73,6 +93,9 @@ public class TaskManagerTCPServer {
             this.start();
 		}
 		
+		/**
+		 * Handles the requests according what kind it is (fx. get, put, delete,...)
+		 */
 		public void run() {
 			try{
 
@@ -167,6 +190,7 @@ public class TaskManagerTCPServer {
      * @return Success message (confidence wins)
      * @todo implement fault handling
      */
+	//TODO Look above
 	private String post(Task task){
         System.out.println("Posting "+task);
         System.out.println(cal);
